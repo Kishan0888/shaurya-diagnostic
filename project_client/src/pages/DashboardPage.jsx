@@ -43,7 +43,8 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+
         <div>
           <h1 className="text-xl font-bold text-slate-800">Dashboard</h1>
           <p className="text-sm text-slate-400">{today}</p>
@@ -51,7 +52,7 @@ export default function DashboardPage() {
         <Link to="/patients/new" className="btn-primary">+ New Patient</Link>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 md:gap-4">
         <StatCard icon={Users} label="Today's Patients" value={s.todayPatients} color="blue" />
         <StatCard icon={FileText} label="Reports Generated" value={s.reportsGenerated} color="green" />
         <StatCard icon={Receipt} label="Today's Invoices" value={s.todayInvoices} color="purple" />
@@ -70,7 +71,7 @@ export default function DashboardPage() {
           {data?.recentActivity?.length === 0 ? (
             <p className="text-slate-400 text-sm text-center py-10">No patients registered today</p>
           ) : (
-            <table className="w-full">
+           <table className="min-w-[600px] w-full">
               <thead>
                 <tr className="bg-slate-50 border-b">
                   <th className="table-cell text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Patient ID</th>

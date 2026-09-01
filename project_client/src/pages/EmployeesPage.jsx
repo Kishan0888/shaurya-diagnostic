@@ -139,11 +139,11 @@ function Modal({ emp, onClose, onSave }) {
             </div>
           )}
 
-          <div className="flex gap-3 pt-1">
-            <button type="submit" disabled={loading} className="btn-primary">
+          <div className="flex flex-col sm:flex-row gap-3 pt-1">
+            <button type="submit" disabled={loading} className="btn-primary w-full sm:w-auto">
               {loading ? 'Saving...' : isEdit ? 'Update' : 'Add Employee'}
             </button>
-            <button type="button" onClick={onClose} className="btn-secondary">Cancel</button>
+            <button type="button" onClick={onClose} className="btn-secondary w-full sm:w-auto">Cancel</button>
           </div>
         </form>
       </div>
@@ -169,15 +169,28 @@ export default function EmployeesPage() {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-slate-800">Employees</h1>
-        <button onClick={() => setModal('new')} className="btn-primary flex items-center gap-2">
-          <Plus size={15} /> Add Employee
-        </button>
-      </div>
+     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+  <div>
+    <h1 className="text-2xl md:text-3xl font-bold text-slate-800">
+      Employees
+    </h1>
+    <p className="text-sm text-slate-400">
+      {employees.length} staff members
+    </p>
+  </div>
+
+  <button
+    onClick={() => setModal('new')}
+    className="btn-primary flex items-center justify-center gap-2 w-full sm:w-auto"
+  >
+    <Plus size={16} />
+    Add Employee
+  </button>
+</div>
 
       <div className="card overflow-hidden">
-        <table className="w-full">
+  <div className="hidden md:block overflow-x-auto">
+    <table className="w-full">
           <thead>
             <tr className="bg-slate-50 border-b">
               {['Employee ID', 'Name', 'Role', 'Mobile', 'Email', 'Login', 'Actions'].map(h => (
@@ -226,7 +239,79 @@ export default function EmployeesPage() {
             ))}
           </tbody>
         </table>
+          </div>
       </div>
+
+{/* Mobile Employee Cards */}
+<div className="md:hidden space-y-3 p-3">
+  {employees.length === 0 ? (
+    <div className="text-center py-8 text-slate-400">
+      No employees found
+    </div>
+  ) : (
+    employees.map((e) => (
+      <div
+        key={e._id}
+        className="rounded-xl border bg-white p-4 shadow-sm"
+      >
+        <div className="flex items-center justify-between mb-3">
+          <span className="badge-blue">{e.employeeId}</span>
+
+          {e.userId ? (
+            <span className={e.userId.isActive ? "badge-green" : "badge-red"}>
+              {e.userId.isActive ? "Active" : "Disabled"}
+            </span>
+          ) : (
+            <span className="badge-gray">No Login</span>
+          )}
+        </div>
+
+        <h3 className="font-bold text-lg text-slate-800">
+          {e.name}
+        </h3>
+
+        <p className="text-sm text-slate-500">{e.role}</p>
+
+        <div className="mt-3 space-y-2 text-sm">
+          <div className="grid grid-cols-[70px_1fr] gap-3">
+            <span className="text-slate-400">Mobile</span>
+
+            <a
+              href={`tel:${e.mobile}`}
+              className="text-blue-600 font-medium"
+            >
+              {e.mobile}
+            </a>
+          </div>
+
+          <div className="grid grid-cols-[70px_1fr] gap-3">
+            <span className="text-slate-400">Email</span>
+
+            <span className="break-words">
+              {e.email || "—"}
+            </span>
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-2 mt-4 pt-3 border-t">
+          <button
+            onClick={() => setModal(e)}
+            className="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center active:scale-95 transition"
+          >
+            <Pencil size={18} />
+          </button>
+
+          <button
+            onClick={() => handleDelete(e._id)}
+            className="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center active:scale-95 transition"
+          >
+            <Trash2 size={18} />
+          </button>
+        </div>
+      </div>
+    ))
+  )}
+</div>
 
       {modal && (
         <Modal

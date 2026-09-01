@@ -41,34 +41,71 @@ export default function PatientsPage() {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-slate-800">Patients</h1>
-          <p className="text-sm text-slate-400">{total} total records</p>
-        </div>
-        <Link to="/patients/new" className="btn-primary flex items-center gap-2"><Plus size={15} /> Add Patient</Link>
-      </div>
+     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+  <div>
+    <h1 className="text-2xl md:text-3xl font-bold text-slate-800">
+      Patients
+    </h1>
+    <p className="text-sm text-slate-400">{total} total records</p>
+  </div>
+
+  <Link
+    to="/patients/new"
+    className="btn-primary flex items-center justify-center gap-2 w-full sm:w-auto"
+  >
+    <Plus size={16} />
+    Add Patient
+  </Link>
+</div>
 
       {/* Filters */}
-      <div className="card p-4 flex flex-wrap gap-3">
-        <div className="relative flex-1 min-w-[200px]">
-          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            className="input pl-9"
-            placeholder="Search name, ID, mobile, test..."
-            value={search}
-            onChange={e => { setSearch(e.target.value); setPage(1); }}
-          />
-        </div>
-        <input type="date" className="input w-44" value={date} onChange={e => { setDate(e.target.value); setPage(1); }} />
-        {(search || date) && (
-          <button className="btn-secondary" onClick={() => { setSearch(''); setDate(''); setPage(1); }}>Clear</button>
-        )}
-      </div>
+      <div className="card p-4">
+  <div className="grid grid-cols-1 sm:grid-cols-[1fr_180px_auto] gap-3">
+    <div className="relative">
+      <Search
+        size={16}
+        className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+      />
+
+      <input
+        className="input pl-9 w-full"
+        placeholder="Search name, ID, mobile, test..."
+        value={search}
+        onChange={e => {
+          setSearch(e.target.value);
+          setPage(1);
+        }}
+      />
+    </div>
+
+    <input
+      type="date"
+      className="input w-full"
+      value={date}
+      onChange={e => {
+        setDate(e.target.value);
+        setPage(1);
+      }}
+    />
+
+    {(search || date) && (
+      <button
+        className="btn-secondary w-full sm:w-auto"
+        onClick={() => {
+          setSearch('');
+          setDate('');
+          setPage(1);
+        }}
+      >
+        Clear
+      </button>
+    )}
+  </div>
+</div>
 
       <div className="card overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
+<div className="hidden md:block overflow-x-auto">
+    <table className="min-w-[950px] w-full">
             <thead>
               <tr className="bg-slate-50 border-b">
                 {['Patient ID', 'Name', 'Age/Gender', 'Mobile', 'Test', 'Doctor', 'Date', 'Invoice', 'Actions'].map(h => (
@@ -94,7 +131,7 @@ export default function PatientsPage() {
                     {p.invoiceId ? <span className="badge-green">Billed</span> : <span className="badge-gray">Pending</span>}
                   </td>
                   <td className="table-cell">
-                    <div className="flex items-center gap-1">
+                    <div className="flex flex-wrap items-center gap-1">
                       <button onClick={() => navigate(`/patients/${p._id}`)} className="p-1.5 rounded hover:bg-blue-50 text-slate-400 hover:text-blue-600"><Eye size={14} /></button>
                       <button onClick={() => navigate(`/patients/${p._id}/edit`)} className="p-1.5 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-600"><Pencil size={14} /></button>
                       <button onClick={() => handleDelete(p._id)} className="p-1.5 rounded hover:bg-red-50 text-slate-400 hover:text-red-600"><Trash2 size={14} /></button>
@@ -106,17 +143,109 @@ export default function PatientsPage() {
           </table>
         </div>
 
-        {/* Pagination */}
-        {pages > 1 && (
-          <div className="flex items-center justify-between px-4 py-3 border-t bg-slate-50">
-            <p className="text-xs text-slate-500">Page {page} of {pages}</p>
-            <div className="flex gap-2">
-              <button disabled={page === 1} onClick={() => setPage(p => p - 1)} className="btn-secondary py-1 px-3 disabled:opacity-40">Prev</button>
-              <button disabled={page === pages} onClick={() => setPage(p => p + 1)} className="btn-secondary py-1 px-3 disabled:opacity-40">Next</button>
-            </div>
-          </div>
-        )}
-      </div>
+{/* Mobile Patient Cards */}
+<div className="md:hidden space-y-3 p-3">
+  {loading ? (
+    <div className="text-center py-8 text-slate-400">Loading...</div>
+  ) : patients.length === 0 ? (
+    <div className="text-center py-8 text-slate-400">
+      No patients found
     </div>
-  );
+  ) : (
+    patients.map((p) => (
+      <div key={p._id} className="rounded-xl border bg-white p-4 shadow-sm">
+        <div className="flex items-center justify-between mb-3">
+          <span className="badge-blue">{p.patientId}</span>
+          {p.invoiceId ? (
+            <span className="badge-green">Billed</span>
+          ) : (
+            <span className="badge-gray">Pending</span>
+          )}
+        </div>
+
+        <h3 className="font-semibold text-slate-800">{p.name}</h3>
+        <p className="text-sm text-slate-500">
+          {p.age}y / {p.gender[0]}
+        </p>
+
+        <div className="mt-3 space-y-2 text-sm">
+          <div className="flex justify-between">
+            <span className="text-slate-400">Mobile</span>
+            <span>{p.mobile}</span>
+          </div>
+
+          <div className="flex justify-between gap-3">
+            <span className="text-slate-400">Test</span>
+            <span className="text-right">{p.testName}</span>
+          </div>
+
+          <div className="flex justify-between gap-3">
+            <span className="text-slate-400">Doctor</span>
+            <span className="text-right">{p.referringDoctor}</span>
+          </div>
+
+          <div className="flex justify-between">
+            <span className="text-slate-400">Date</span>
+            <span>
+              {new Date(p.createdAt).toLocaleDateString("en-IN")}
+            </span>
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-2 mt-4 pt-3 border-t">
+          <button
+            onClick={() => navigate(`/patients/${p._id}`)}
+            className="p-2 rounded-lg bg-blue-50 text-blue-600"
+          >
+            <Eye size={18} />
+          </button>
+
+          <button
+            onClick={() => navigate(`/patients/${p._id}/edit`)}
+            className="p-2 rounded-lg bg-slate-100 text-slate-600"
+          >
+            <Pencil size={18} />
+          </button>
+
+          <button
+            onClick={() => handleDelete(p._id)}
+            className="p-2 rounded-lg bg-red-50 text-red-600"
+          >
+            <Trash2 size={18} />
+          </button>
+        </div>
+      </div>
+    ))
+  )}
+</div>
+
+      {/* Pagination */}
+      {pages > 1 && (
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 py-3 border-t bg-slate-50">
+          <p className="text-xs text-slate-500">
+            Page {page} of {pages}
+          </p>
+
+          <div className="flex gap-2 w-full sm:w-auto">
+            <button
+              disabled={page === 1}
+              onClick={() => setPage((p) => p - 1)}
+              className="btn-secondary flex-1 sm:flex-none py-1 px-3 disabled:opacity-40"
+            >
+              Prev
+            </button>
+
+            <button
+              disabled={page === pages}
+              onClick={() => setPage((p) => p + 1)}
+              className="btn-secondary flex-1 sm:flex-none py-1 px-3 disabled:opacity-40"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  </div>
+);
 }

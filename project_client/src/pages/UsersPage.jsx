@@ -49,9 +49,9 @@ function CreateModal({ onClose, onSave }) {
               {ROLES.map(r => <option key={r} value={r}>{r.replace('_', ' ')}</option>)}
             </select>
           </div>
-          <div className="flex gap-3">
-            <button type="submit" disabled={loading} className="btn-primary">{loading ? 'Creating...' : 'Create User'}</button>
-            <button type="button" onClick={onClose} className="btn-secondary">Cancel</button>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <button type="submit" disabled={loading} className="btn-primary w-full sm:w-auto">{loading ? 'Creating...' : 'Create User'}</button>
+            <button type="button" onClick={onClose} className="btn-secondary w-full sm:w-auto">Cancel</button>
           </div>
         </form>
       </div>
@@ -98,7 +98,7 @@ function ResetPasswordModal({ user, onClose }) {
               </button>
             </div>
           </div>
-          <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-3">
             <button type="submit" disabled={loading} className="btn-primary">{loading ? 'Resetting...' : 'Reset Password'}</button>
             <button type="button" onClick={onClose} className="btn-secondary">Cancel</button>
           </div>
@@ -128,16 +128,28 @@ export default function UsersPage() {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-slate-800">User Management</h1>
-        <button onClick={() => setShowCreate(true)} className="btn-primary flex items-center gap-2">
-          <Plus size={15} /> Create User
-        </button>
-      </div>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+  <div>
+    <h1 className="text-2xl md:text-3xl font-bold text-slate-800">
+      User Management
+    </h1>
+    <p className="text-sm text-slate-400">
+      {users.length} registered users
+    </p>
+  </div>
+
+  <button
+    onClick={() => setShowCreate(true)}
+    className="btn-primary flex items-center justify-center gap-2 w-full sm:w-auto"
+  >
+    <Plus size={16} />
+    Create User
+  </button>
+</div>
 
       <div className="card overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
+       <div className="hidden md:block overflow-x-auto">
+  <table className="w-full">
             <thead>
               <tr className="bg-slate-50 border-b">
                 {['Name', 'Email', 'Role', 'Linked Employee', 'Status', 'Created', 'Actions'].map(h => (
@@ -195,9 +207,92 @@ export default function UsersPage() {
               ))}
             </tbody>
           </table>
+          </div>
+      </div>
+{/* Mobile User Cards */}
+<div className="md:hidden space-y-3 p-3">
+  {users.length === 0 ? (
+    <div className="text-center py-8 text-slate-400">
+      No users found
+    </div>
+  ) : (
+    users.map((u) => (
+      <div
+        key={u._id}
+        className="rounded-xl border bg-white p-4 shadow-sm"
+      >
+        <div className="flex items-center justify-between mb-3">
+          <span className={roleBadge(u.role)}>
+            {u.role.replace("_", " ")}
+          </span>
+
+          <span className={u.isActive ? "badge-green" : "badge-red"}>
+            {u.isActive ? "Active" : "Inactive"}
+          </span>
+        </div>
+
+        <h3 className="font-bold text-lg text-slate-800">
+          {u.name}
+        </h3>
+
+        <a
+          href={`mailto:${u.email}`}
+          className="text-sm text-blue-600 break-all"
+        >
+          {u.email}
+        </a>
+
+        <div className="mt-3 space-y-2 text-sm">
+          <div className="grid grid-cols-[80px_1fr] gap-3">
+            <span className="text-slate-400">Employee</span>
+
+            <span className="break-words">
+              {u.employeeId ? (
+                <>
+                  <span className="badge-blue text-xs mr-2">
+                    {u.employeeId.employeeId}
+                  </span>
+
+                  {u.employeeId.name}
+                </>
+              ) : (
+                "Not linked"
+              )}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-[80px_1fr] gap-3">
+            <span className="text-slate-400">Created</span>
+
+            <span>
+              {new Date(u.createdAt).toLocaleDateString("en-IN")}
+            </span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2 mt-4 pt-3 border-t">
+          <button
+            onClick={() => setResetTarget(u)}
+            className="w-full py-2 rounded-xl bg-blue-50 text-blue-600 font-medium active:scale-95 transition"
+          >
+            Reset PW
+          </button>
+
+          <button
+            onClick={() => toggleActive(u._id, u.isActive)}
+            className={`w-full py-2 rounded-xl font-medium active:scale-95 transition ${
+              u.isActive
+                ? "bg-red-50 text-red-600"
+                : "bg-green-50 text-green-600"
+            }`}
+          >
+            {u.isActive ? "Disable" : "Enable"}
+          </button>
         </div>
       </div>
-
+    ))
+  )}
+</div>
       {showCreate && (
         <CreateModal onClose={() => setShowCreate(false)} onSave={() => { setShowCreate(false); load(); }} />
       )}

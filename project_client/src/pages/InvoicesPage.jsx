@@ -46,22 +46,50 @@ export default function InvoicesPage() {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-slate-800">Invoices</h1>
-        <div className="flex gap-3 text-sm">
-          <span className="badge-green">Today: {stats.count || 0} invoices</span>
-          <span className="badge-blue">Revenue: ₹{stats.total?.toLocaleString('en-IN') || '0'}</span>
-        </div>
-      </div>
+     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+  <h1 className="text-2xl md:text-3xl font-bold text-slate-800">
+    Invoices
+  </h1>
 
-      <div className="card p-4 flex gap-3 items-center">
-        <label className="text-sm text-slate-500">Filter by date:</label>
-        <input type="date" className="input w-44" value={date} onChange={e => { setDate(e.target.value); setPage(1); }} />
-        {date && <button className="btn-secondary text-sm" onClick={() => setDate('')}>Clear</button>}
-      </div>
+  <div className="flex flex-wrap gap-2">
+    <span className="badge-green">
+      Today: {stats.count || 0} invoices
+    </span>
+
+    <span className="badge-blue">
+      Revenue: ₹{stats.total?.toLocaleString("en-IN") || "0"}
+    </span>
+  </div>
+</div>
+
+      <div className="card p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+  <label className="text-sm text-slate-500 shrink-0">
+    Filter by date:
+  </label>
+
+  <input
+    type="date"
+    className="input w-full sm:w-44"
+    value={date}
+    onChange={(e) => {
+      setDate(e.target.value);
+      setPage(1);
+    }}
+  />
+
+  {date && (
+    <button
+      className="btn-secondary w-full sm:w-auto"
+      onClick={() => setDate("")}
+    >
+      Clear
+    </button>
+  )}
+</div>
 
       <div className="card overflow-hidden">
-        <table className="w-full">
+        <div className="hidden md:block overflow-x-auto">
+  <table className="w-full">
           <thead>
             <tr className="bg-slate-50 border-b">
               {['Invoice No', 'Patient', 'Test', 'Amount', 'Discount', 'Net', 'Payment', 'Date', 'Actions'].map(h => (
@@ -100,16 +128,126 @@ export default function InvoicesPage() {
             })}
           </tbody>
         </table>
-        {pages > 1 && (
-          <div className="flex items-center justify-between px-4 py-3 border-t bg-slate-50">
-            <p className="text-xs text-slate-500">Page {page} of {pages}</p>
-            <div className="flex gap-2">
-              <button disabled={page === 1} onClick={() => setPage(p => p - 1)} className="btn-secondary py-1 px-3 disabled:opacity-40">Prev</button>
-              <button disabled={page === pages} onClick={() => setPage(p => p + 1)} className="btn-secondary py-1 px-3 disabled:opacity-40">Next</button>
+        </div>
+        {/* Mobile Invoice Cards */}
+<div className="md:hidden space-y-3 p-3">
+  {loading ? (
+    <div className="text-center py-8 text-slate-400">Loading...</div>
+  ) : invoices.length === 0 ? (
+    <div className="text-center py-8 text-slate-400">
+      No invoices found
+    </div>
+  ) : (
+    invoices.map((inv) => {
+      const net = inv.amount - (inv.discount || 0);
+
+      return (
+        <div
+          key={inv._id}
+          className="rounded-xl border bg-white p-4 shadow-sm"
+        >
+          <div className="flex items-center justify-between mb-3">
+            <span className="badge-blue text-xs">
+              {inv.invoiceNumber}
+            </span>
+
+            <span className="badge-gray capitalize">
+              {inv.paymentMode}
+            </span>
+          </div>
+
+          <h3 className="font-bold text-lg text-slate-800">
+            {inv.patientId?.name}
+          </h3>
+
+          <p className="text-sm text-slate-500">
+            {inv.patientId?.patientId}
+          </p>
+
+          <div className="mt-3 space-y-2 text-sm">
+            <div className="grid grid-cols-[70px_1fr] gap-3">
+              <span className="text-slate-400">Test</span>
+              <span className="text-slate-700 break-words">
+                {inv.testName}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-[70px_1fr] gap-3">
+              <span className="text-slate-400">Amount</span>
+              <span className="font-medium">
+                ₹{inv.amount.toLocaleString("en-IN")}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-[70px_1fr] gap-3">
+              <span className="text-slate-400">Discount</span>
+              <span className="text-red-500">
+                {inv.discount > 0 ? `-₹${inv.discount}` : "—"}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-[70px_1fr] gap-3">
+              <span className="text-slate-400">Net</span>
+              <span className="font-bold text-lg text-slate-800">
+                ₹{net.toLocaleString("en-IN")}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-[70px_1fr] gap-3">
+              <span className="text-slate-400">Date</span>
+              <span>
+                {new Date(inv.date).toLocaleDateString("en-IN")}
+              </span>
             </div>
           </div>
-        )}
+
+          <div className="flex justify-end gap-2 mt-4 pt-3 border-t">
+            <button
+              onClick={() => download(inv._id, inv.invoiceNumber)}
+              className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center active:scale-95 transition"
+            >
+              <Download size={18} />
+            </button>
+
+            <button
+              onClick={() => print(inv._id)}
+              className="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center active:scale-95 transition"
+            >
+              <Printer size={18} />
+            </button>
+          </div>
+        </div>
+      );
+    })
+  )}
+</div>
+       {pages > 1 && (
+<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 py-3 border-t bg-slate-50">   
+   <p className="text-xs text-slate-500">
+      Page {page} of {pages}
+    </p>
+
+    <div className="flex gap-2 w-full sm:w-auto">
+      <button
+        disabled={page === 1}
+        onClick={() => setPage((p) => p - 1)}
+        className="btn-secondary flex-1 sm:flex-none py-1 px-3 disabled:opacity-40"
+      >
+        Prev
+      </button>
+
+      <button
+        disabled={page === pages}
+        onClick={() => setPage((p) => p + 1)}
+        className="btn-secondary flex-1 sm:flex-none py-1 px-3 disabled:opacity-40"
+      >
+        Next
+      </button>
+    </div>
+  </div>
+)}
       </div>
     </div>
   );
 }
+  
