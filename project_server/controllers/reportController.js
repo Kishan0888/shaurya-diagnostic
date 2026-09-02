@@ -12,7 +12,8 @@ if (!fs.existsSync(OUTPUT_DIR)) fs.mkdirSync(OUTPUT_DIR, { recursive: true });
 const LETTERHEAD_HEIGHT_PT = 110; // points (~38.8mm)
 const PAGE_WIDTH = 595.28;        // A4
 const PAGE_HEIGHT = 841.89;       // A4
-const MARGIN = 8; // ~3mm (almost full-width fit)             // ~10mm
+const LEFT_MARGIN = 8;
+const RIGHT_MARGIN = 2; // right side almost touch ho jayega // ~3mm (almost full-width fit)             // ~10mm
 
 async function getLetterheadBytes() {
   if (!fs.existsSync(LETTERHEAD_PATH)) return null;
@@ -44,7 +45,7 @@ async function generateFromImage(imageBuffer, mimeType) {
   const meta = await sharp(pngBuffer).metadata();
   const imgAspect = meta.width / meta.height;
 
-  const availableWidth = PAGE_WIDTH - 2 * MARGIN;
+const availableWidth = PAGE_WIDTH - LEFT_MARGIN - RIGHT_MARGIN;
   const TOP_MARGIN = 25;
 const BOTTOM_MARGIN = 60;
 
@@ -57,7 +58,7 @@ const availableHeight = PAGE_HEIGHT - TOP_MARGIN - BOTTOM_MARGIN;
     imgW = imgH * imgAspect;
   }
 
-  const imgX = (PAGE_WIDTH - imgW) / 2;
+const imgX = LEFT_MARGIN;
   const imgY = PAGE_HEIGHT - TOP_MARGIN - imgH;
 
   const pdfDoc = await PDFDocument.create();
@@ -97,7 +98,7 @@ async function generateFromPdf(pdfBuffer) {
 const BOTTOM_MARGIN = 60;
 
 const availH = PAGE_HEIGHT - TOP_MARGIN - BOTTOM_MARGIN;
-    const availW = PAGE_WIDTH - 2 * MARGIN;
+const availW = PAGE_WIDTH - LEFT_MARGIN - RIGHT_MARGIN;
     const srcAspect = srcW / srcH;
 
     let drawW = availW;
@@ -107,7 +108,7 @@ const availH = PAGE_HEIGHT - TOP_MARGIN - BOTTOM_MARGIN;
       drawW = drawH * srcAspect;
     }
 
-    const drawX = (PAGE_WIDTH - drawW) / 2;
+const drawX = LEFT_MARGIN;
     const drawY = PAGE_HEIGHT - TOP_MARGIN - drawH;
 
     newPage.drawPage(embedded, { x: drawX, y: drawY, width: drawW, height: drawH });
