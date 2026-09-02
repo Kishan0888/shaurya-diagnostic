@@ -45,7 +45,7 @@ async function generateFromImage(imageBuffer, mimeType) {
   const imgAspect = meta.width / meta.height;
 
   const availableWidth = PAGE_WIDTH - 2 * MARGIN;
-  const TOP_MARGIN = 150;
+  const TOP_MARGIN = 105;
 const BOTTOM_MARGIN = 60;
 
 const availableHeight = PAGE_HEIGHT - TOP_MARGIN - BOTTOM_MARGIN;
@@ -93,7 +93,7 @@ async function generateFromPdf(pdfBuffer) {
     // Embed source page as XObject
     const embedded = await outputPdf.embedPage(copiedPage);
 
-    const TOP_MARGIN = 150;
+    const TOP_MARGIN = 105;
 const BOTTOM_MARGIN = 60;
 
 const availH = PAGE_HEIGHT - TOP_MARGIN - BOTTOM_MARGIN;
