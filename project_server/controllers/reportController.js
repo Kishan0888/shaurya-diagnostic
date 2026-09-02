@@ -12,7 +12,7 @@ if (!fs.existsSync(OUTPUT_DIR)) fs.mkdirSync(OUTPUT_DIR, { recursive: true });
 const LETTERHEAD_HEIGHT_PT = 110; // points (~38.8mm)
 const PAGE_WIDTH = 595.28;        // A4
 const PAGE_HEIGHT = 841.89;       // A4
-const MARGIN = 28.35;             // ~10mm
+const MARGIN = 8; // ~3mm (almost full-width fit)             // ~10mm
 
 async function getLetterheadBytes() {
   if (!fs.existsSync(LETTERHEAD_PATH)) return null;
@@ -45,7 +45,7 @@ async function generateFromImage(imageBuffer, mimeType) {
   const imgAspect = meta.width / meta.height;
 
   const availableWidth = PAGE_WIDTH - 2 * MARGIN;
-  const TOP_MARGIN = 50;
+  const TOP_MARGIN = 25;
 const BOTTOM_MARGIN = 60;
 
 const availableHeight = PAGE_HEIGHT - TOP_MARGIN - BOTTOM_MARGIN;
@@ -93,7 +93,7 @@ async function generateFromPdf(pdfBuffer) {
     // Embed source page as XObject
     const embedded = await outputPdf.embedPage(copiedPage);
 
-    const TOP_MARGIN = 50;
+    const TOP_MARGIN = 25;
 const BOTTOM_MARGIN = 60;
 
 const availH = PAGE_HEIGHT - TOP_MARGIN - BOTTOM_MARGIN;
