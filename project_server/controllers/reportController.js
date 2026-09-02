@@ -92,13 +92,17 @@ async function generateFromPdf(pdfBuffer) {
     await embedLetterhead(outputPdf, newPage);
 
     // Embed source page as XObject
-    const embedded = await outputPdf.embedPage(copiedPage);
-
+const embedded = await outputPdf.embedPage(copiedPage, {
+  left: 0,
+  bottom: 0,
+  right: srcW - 35, // right side se 18pt crop
+  top: srcH,
+});
     const TOP_MARGIN = 25;
 const BOTTOM_MARGIN = 60;
 
 const availH = PAGE_HEIGHT - TOP_MARGIN - BOTTOM_MARGIN;
-const availW = PAGE_WIDTH - LEFT_MARGIN - RIGHT_MARGIN;
+const availW = PAGE_WIDTH - LEFT_MARGIN - 2;
     const srcAspect = srcW / srcH;
 
     let drawW = availW;
