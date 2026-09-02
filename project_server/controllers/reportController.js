@@ -13,7 +13,7 @@ const LETTERHEAD_HEIGHT_PT = 110; // points (~38.8mm)
 const PAGE_WIDTH = 595.28;        // A4
 const PAGE_HEIGHT = 841.89;       // A4
 const LEFT_MARGIN = 8;
-const RIGHT_MARGIN = 2; // right side almost touch ho jayega // ~3mm (almost full-width fit)             // ~10mm
+const RIGHT_MARGIN = -8; // right side almost touch ho jayega // ~3mm (almost full-width fit)             // ~10mm
 
 async function getLetterheadBytes() {
   if (!fs.existsSync(LETTERHEAD_PATH)) return null;
