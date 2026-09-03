@@ -115,10 +115,16 @@ const srcAspect = croppedWidth / srcH;
       drawW = drawH * srcAspect;
     }
 
-const drawX = LEFT_MARGIN;
-    const drawY = PAGE_HEIGHT - TOP_MARGIN - drawH;
+const drawX = LEFT_MARGIN - 8;      // 8pt left shift
+const drawY = PAGE_HEIGHT - TOP_MARGIN - drawH;
+const finalWidth = drawW + 18;      // right side 18pt aur bada
 
-    newPage.drawPage(embedded, { x: drawX, y: drawY, width: drawW, height: drawH });
+    newPage.drawPage(embedded, {
+  x: drawX,
+  y: drawY,
+  width: drawW,
+  height: drawH
+});
   }
 
   return outputPdf.save();
