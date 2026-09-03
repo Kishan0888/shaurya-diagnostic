@@ -46,7 +46,7 @@ async function generateFromImage(imageBuffer, mimeType) {
   const imgAspect = meta.width / meta.height;
 
 const availableWidth = PAGE_WIDTH - LEFT_MARGIN - RIGHT_MARGIN;
-  const TOP_MARGIN = 25;
+  const TOP_MARGIN = 20;
 const BOTTOM_MARGIN = 60;
 
 const availableHeight = PAGE_HEIGHT - TOP_MARGIN - BOTTOM_MARGIN;
@@ -95,14 +95,14 @@ async function generateFromPdf(pdfBuffer) {
 const embedded = await outputPdf.embedPage(copiedPage, {
   left: 0,
   bottom: 0,
-  right: srcW - 35, // right side se 18pt crop
+  right: srcW - 10, // right side se 18pt crop
   top: srcH,
 });
-    const TOP_MARGIN = 25;
+    const TOP_MARGIN = 20;
 const BOTTOM_MARGIN = 60;
 
 const availH = PAGE_HEIGHT - TOP_MARGIN - BOTTOM_MARGIN;
-const availW = PAGE_WIDTH - LEFT_MARGIN - 2;
+const availW = PAGE_WIDTH - LEFT_MARGIN - 10;
     const srcAspect = srcW / srcH;
 
     let drawW = availW;
