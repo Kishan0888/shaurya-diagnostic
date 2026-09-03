@@ -87,27 +87,18 @@ async function generateFromPdf(pdfBuffer) {
     // Create new A4 page
     const newPage = outputPdf.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
     newPage.drawRectangle({ x: 0, y: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT, color: rgb(1, 1, 1) });
+// Embed letterhead
+await embedLetterhead(outputPdf, newPage);
 
-    // Embed letterhead
-    await embedLetterhead(outputPdf, newPage);
+// Embed source page as XObject
+const embedded = await outputPdf.embedPage(copiedPage);
 
-    // Embed source page as XObject
-const CROP_RIGHT = 55; // 35 se badha diya
-
-const embedded = await outputPdf.embedPage(copiedPage, {
-  left: 0,
-  bottom: 0,
-  right: srcW - CROP_RIGHT,
-  top: srcH,
-});
-    const TOP_MARGIN = 20;
+const TOP_MARGIN = 10;
 const BOTTOM_MARGIN = 60;
 
 const availH = PAGE_HEIGHT - TOP_MARGIN - BOTTOM_MARGIN;
-const availW = PAGE_WIDTH - LEFT_MARGIN - 2;
-    const croppedWidth = srcW - CROP_RIGHT;
-const srcAspect = croppedWidth / srcH;
-
+const availW = PAGE_WIDTH - LEFT_MARGIN + 10;
+    const srcAspect = srcW / srcH;
     let drawW = availW;
     let drawH = drawW / srcAspect;
     if (drawH > availH) {
@@ -115,15 +106,15 @@ const srcAspect = croppedWidth / srcH;
       drawW = drawH * srcAspect;
     }
 
-const drawX = LEFT_MARGIN - 8;      // 8pt left shift
+const drawX = LEFT_MARGIN - 8;
 const drawY = PAGE_HEIGHT - TOP_MARGIN - drawH;
-const finalWidth = drawW + 18;      // right side 18pt aur bada
+const finalWidth = drawW + 22;
 
-    newPage.drawPage(embedded, {
+newPage.drawPage(embedded, {
   x: drawX,
   y: drawY,
-  width: drawW,
-  height: drawH
+  width: finalWidth,
+  height: drawH,
 });
   }
 
