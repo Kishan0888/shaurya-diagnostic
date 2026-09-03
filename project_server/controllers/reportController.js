@@ -97,7 +97,7 @@ const TOP_MARGIN = 10;
 const BOTTOM_MARGIN = 60;
 
 const availH = PAGE_HEIGHT - TOP_MARGIN - BOTTOM_MARGIN;
-const availW = PAGE_WIDTH - LEFT_MARGIN + 28;
+const availW = PAGE_WIDTH - LEFT_MARGIN + 35;
     const srcAspect = srcW / srcH;
     let drawW = availW;
     let drawH = drawW / srcAspect;
@@ -108,7 +108,7 @@ const availW = PAGE_WIDTH - LEFT_MARGIN + 28;
 
 const drawX = LEFT_MARGIN - 8;
 const drawY = PAGE_HEIGHT - TOP_MARGIN - drawH;
-const finalWidth = drawW + 40;
+const finalWidth = drawW + 50;
 
 newPage.drawPage(embedded, {
   x: drawX,
