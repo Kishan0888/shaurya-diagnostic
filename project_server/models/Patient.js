@@ -16,8 +16,19 @@ const patientSchema = new mongoose.Schema({
 
 patientSchema.pre('save', async function (next) {
   if (this.patientId) return next();
-  const count = await mongoose.model('Patient').countDocuments();
-  this.patientId = `SDC${String(count + 1).padStart(5, '0')}`;
+
+  const lastPatient = await mongoose.model('Patient')
+    .findOne({ patientId: { $exists: true } })
+    .sort({ patientId: -1 })
+    .select('patientId');
+
+  let nextNumber = 1;
+
+  if (lastPatient?.patientId) {
+    nextNumber = parseInt(lastPatient.patientId.replace('SDC', ''), 10) + 1;
+  }
+
+  this.patientId = `SDC${String(nextNumber).padStart(5, '0')}`;
   next();
 });
 
