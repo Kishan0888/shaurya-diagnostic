@@ -3,8 +3,7 @@ import { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 
-const API = "http://localhost:5000/api/tests";
-
+const API = `${import.meta.env.VITE_API_URL}/tests`;
 export default function TestMasterPage() {
   const [tests, setTests] = useState([]);
   const [loading, setLoading] = useState(true);
