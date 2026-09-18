@@ -22,6 +22,7 @@ const adminNav = [
   { to: '/attendance', label: 'Attendance', icon: ClipboardList },
   { to: '/employees', label: 'Employees', icon: UserCog },
   { to: '/users', label: 'User Management', icon: Activity },
+  { to: '/tests', label: 'Test Master', icon: Stethoscope },
 ];
 
 const receptionNav = [

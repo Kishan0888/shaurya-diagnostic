@@ -24,6 +24,7 @@ app.use('/api/invoices', require('./routes/invoices'));
 app.use('/api/employees', require('./routes/employees'));
 app.use('/api/attendance', require('./routes/attendance'));
 app.use('/api/dashboard', require('./routes/dashboard'));
+app.use('/api/tests', require('./routes/testRoutes'));
 
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'OK', timestamp: new Date() }));

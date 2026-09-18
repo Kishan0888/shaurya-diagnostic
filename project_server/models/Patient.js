@@ -14,22 +14,27 @@ const patientSchema = new mongoose.Schema({
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 }, { timestamps: true });
 
-patientSchema.pre('save', async function (next) {
+patientSchema.pre("save", async function (next) {
   if (this.patientId) return next();
 
-  const lastPatient = await mongoose.model('Patient')
-    .findOne({ patientId: { $exists: true } })
-    .sort({ patientId: -1 })
-    .select('patientId');
+  try {
+    const lastPatient = await mongoose
+      .model("Patient")
+      .findOne({ patientId: /^SDC\d+$/ })
+      .sort({ patientId: -1 })
+      .select("patientId");
 
-  let nextNumber = 1;
+    let nextNumber = 1;
 
-  if (lastPatient?.patientId) {
-    nextNumber = parseInt(lastPatient.patientId.replace('SDC', ''), 10) + 1;
+    if (lastPatient?.patientId) {
+      nextNumber = parseInt(lastPatient.patientId.replace("SDC", ""), 10) + 1;
+    }
+
+    this.patientId = `SDC${String(nextNumber).padStart(5, "0")}`;
+    next();
+  } catch (err) {
+    next(err);
   }
-
-  this.patientId = `SDC${String(nextNumber).padStart(5, '0')}`;
-  next();
 });
 
 module.exports = mongoose.model('Patient', patientSchema);

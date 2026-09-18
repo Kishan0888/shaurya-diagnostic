@@ -3,6 +3,7 @@ const fs = require('fs');
 const { PDFDocument, rgb, StandardFonts } = require('pdf-lib');
 const Invoice = require('../models/Invoice');
 const Patient = require('../models/Patient');
+const Test = require('../models/Test');
 
 const LETTERHEAD_PATH = path.join(__dirname, '../assets/letterhead.png');
 const OUTPUT_DIR = path.join(__dirname, '../uploads/invoices');
@@ -10,20 +11,76 @@ if (!fs.existsSync(OUTPUT_DIR)) fs.mkdirSync(OUTPUT_DIR, { recursive: true });
 
 exports.createInvoice = async (req, res) => {
   try {
-    const { patientId, testName, amount, discount, paymentMode } = req.body;
-    const patient = await Patient.findById(patientId);
-    if (!patient) return res.status(404).json({ success: false, message: 'Patient not found' });
+    const {
+      patientId,
+      selectedTests,
+      discount = 0,
+      paymentMode
+    } = req.body;
 
-    const invoice = await Invoice.create({
-      patientId, testName, amount, discount, paymentMode, createdBy: req.user._id,
-    });
+    const patient = await Patient.findById(patientId);
+
+    if (!patient) {
+      return res.status(404).json({
+        success:false,
+        message:"Patient not found"
+      });
+    }
+
+    // Database ke test IDs aur custom tests alag karo
+const dbTestIds = selectedTests
+  .filter(t => !t.isCustom)
+  .map(t => t._id);
+
+const dbTests = dbTestIds.length
+  ? await Test.find({ _id: { $in: dbTestIds } })
+  : [];
+
+// DB wale tests
+const dbItems = dbTests.map(t => ({
+  testId: t._id,
+  testName: t.testName,
+  price: t.price,
+  isCustom: false
+}));
+
+// Custom tests
+const customItems = selectedTests
+  .filter(t => t.isCustom)
+  .map(t => ({
+    testName: t.testName,
+    price: Number(t.price),
+    isCustom: true
+  }));
+
+// Dono merge
+const items = [...dbItems, ...customItems];
+
+const totalAmount = items.reduce((sum, item) => sum + Number(item.price), 0);
+
+   const invoice = await Invoice.create({
+  patientId,
+  items,
+  testName: items.map(i => i.testName).join(", "),
+  amount: totalAmount,
+  discount,
+  paymentMode,
+  createdBy: req.user._id
+});
 
     patient.invoiceId = invoice._id;
     await patient.save();
 
-    res.status(201).json({ success: true, invoice });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(201).json({
+      success:true,
+      invoice
+    });
+
+  } catch(err){
+    res.status(500).json({
+      success:false,
+      message:err.message
+    });
   }
 };
 
@@ -121,10 +178,37 @@ if (fs.existsSync(LETTERHEAD_PATH)) {
     page.drawText('Amount (Rs.)', { x: 460, y: y + 3, size: 10, font: fontBold, color: rgb(1, 1, 1) });
 
     // Table Row
-    y -= 24;
-    page.drawRectangle({ x: 40, y: y - 4, width: 515, height: 20, color: rgb(0.95, 0.97, 1) });
-    page.drawText(invoice.testName, { x: 50, y: y + 3, size: 10, font: fontReg, color: rgb(0.1, 0.1, 0.1) });
-    page.drawText(invoice.amount.toFixed(2), { x: 468, y: y + 3, size: 10, font: fontReg, color: rgb(0.1, 0.1, 0.1) });
+    y -= 18;
+    page.drawRectangle({ x: 40, y: y - 4, width: 515, height: 22, color: rgb(0.95, 0.97, 1) });
+    y -= 18;
+
+invoice.items.forEach((item, index) => {
+
+  page.drawRectangle({
+    x:40,
+    y:y-4,
+    width:515,
+    height:20,
+    color: rgb(0.95,0.97,1)
+  });
+
+  page.drawText(item.testName,{
+    x:50,
+    y:y+3,
+    size:10,
+    font:fontReg
+  });
+
+  page.drawText(item.price.toFixed(2),{
+    x:468,
+    y:y+3,
+    size:10,
+    font:fontReg
+  });
+
+  y -= 22;
+
+});
 
     // Totals
     y -= 40;
@@ -133,7 +217,12 @@ if (fs.existsSync(LETTERHEAD_PATH)) {
       page.drawText(`- ${invoice.discount.toFixed(2)}`, { x: 468, y, size: 10, font: fontReg, color: rgb(0.7, 0.1, 0.1) });
       y -= 18;
     }
-    const net = invoice.amount - (invoice.discount || 0);
+    const grossAmount = invoice.items.reduce(
+  (sum, item) => sum + Number(item.price || 0),
+  0
+);
+
+const net = grossAmount - Number(invoice.discount || 0);
     page.drawLine({ start: { x: 390, y: y + 12 }, end: { x: 555, y: y + 12 }, thickness: 1, color: rgb(0.7, 0.7, 0.7) });
     page.drawText('Net Amount:', {
   x: 360,
