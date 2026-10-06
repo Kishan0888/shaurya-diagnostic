@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { calcInvoice } = require('../utils/invoiceCalc');
 
 const invoiceSchema = new mongoose.Schema({
   invoiceNumber: { type: String, unique: true },
@@ -41,6 +42,19 @@ selectedTests: [
 subtotal: { type: Number, default: 0 },
 discount: { type: Number, default: 0 },
 totalAmount: { type: Number, default: 0 },
+// Gross amount (before discount) and joined test names – used by list/PDF
+amount: { type: Number, default: 0 },
+testName: { type: String, default: '' },
+// Payment tracking
+amountPaid: { type: Number },
+balanceAmount: { type: Number, default: 0 },
+paymentStatus: { type: String, enum: ['Paid', 'Partial', 'Unpaid'], default: 'Paid' },
+payments: [{
+  amount: { type: Number, required: true },
+  paymentMode: { type: String, default: 'Cash' },
+  date: { type: Date, default: Date.now },
+  receivedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+}],
   paymentMode: { type: String, enum: ['Cash', 'UPI', 'Card', 'Net Banking', 'Credit'], default: 'Cash' },
   isPaid: { type: Boolean, default: true },
   date: { type: Date, default: Date.now },
@@ -48,19 +62,19 @@ totalAmount: { type: Number, default: 0 },
 }, { timestamps: true });
 
 invoiceSchema.pre('save', async function (next) {
-  // Auto calculate total for multi-test invoices
-if (this.selectedTests?.length) {
-  this.subtotal = this.selectedTests.reduce(
-    (sum, test) => sum + Number(test.price || 0),
-    0
-  );
+  // Auto calculate totals, paid and balance (works for items and selectedTests)
+  const c = calcInvoice(this);
+  this.subtotal = c.grossAmount;
+  this.amount = c.grossAmount;
+  this.discount = c.discount;
+  this.totalAmount = c.netAmount;
+  this.amountPaid = c.amountPaid;
+  this.balanceAmount = c.balanceAmount;
+  this.paymentStatus = c.paymentStatus;
+  this.isPaid = c.balanceAmount <= 0;
+  const list = this.items?.length ? this.items : (this.selectedTests || []);
+  if (list.length) this.testName = list.map(t => t.testName).join(', ');
 
-  this.totalAmount = this.subtotal - (this.discount || 0);
-
-  // Old fields bhi fill kar do compatibility ke liye
-  this.testName = this.selectedTests.map(t => t.testName).join(", ");
-  this.amount = this.totalAmount;
-}
   if (this.invoiceNumber) return next();
   const count = await mongoose.model('Invoice').countDocuments();
   const year = new Date().getFullYear().toString().slice(-2);

@@ -11,7 +11,8 @@ const EMPTY = {
   mobile: '',
   referringDoctor: '',
   paymentMode: 'Cash',
-  discount: 0
+  discount: 0,
+  amountPaid: ''
 };
 
 export default function PatientFormPage() {
@@ -66,7 +67,13 @@ const loadTests = async () => {
   );
 }, [tests, searchTest]);
 
-const totalAmount = selectedTests.reduce((sum, t) => sum + t.price, 0);
+const totalAmount = selectedTests.reduce((sum, t) => sum + (Number(t.price) || 0), 0);
+const discountAmt = Math.min(Math.max(Number(form.discount) || 0, 0), totalAmount);
+const netAmount = totalAmount - discountAmt;
+const paidAmt = form.amountPaid === '' || form.amountPaid === undefined
+  ? netAmount
+  : Math.min(Math.max(Number(form.amountPaid) || 0, 0), netAmount);
+const balanceAmt = netAmount - paidAmt;
 
 const toggleTest = (test) => {
   if (selectedTests.some(t => t._id === test._id)) {
@@ -94,6 +101,7 @@ await api.post("/invoices", {
   selectedTests,
   paymentMode: form.paymentMode,
   discount: Number(form.discount || 0),
+  amountPaid: form.amountPaid === '' ? undefined : Number(form.amountPaid),
 });
 
 toast.success(`Patient registered — ${res.data.patient.patientId}`);
@@ -268,6 +276,30 @@ onChange={(e) =>
     placeholder="0"
   />
 </div>
+
+{!isEdit && (
+<div>
+  <label className="label">Amount Paid</label>
+  <input
+    className="input"
+    type="number"
+    min="0"
+    value={form.amountPaid}
+    onChange={set("amountPaid")}
+    placeholder={`Full payment (₹${netAmount})`}
+  />
+</div>
+)}
+
+{!isEdit && selectedTests.length > 0 && (
+<div className="col-span-2 rounded-xl border bg-slate-50 p-3 grid grid-cols-2 gap-1 text-sm">
+  <span className="text-slate-500">Total Amount</span><span className="text-right">₹{totalAmount}</span>
+  <span className="text-slate-500">Discount</span><span className="text-right text-red-500">-₹{discountAmt}</span>
+  <span className="text-slate-500">Net Amount</span><span className="text-right font-semibold">₹{netAmount}</span>
+  <span className="text-slate-500">Amount Paid</span><span className="text-right text-green-700">₹{paidAmt}</span>
+  <span className="text-slate-500 font-semibold">Balance Due</span><span className={`text-right font-bold ${balanceAmt > 0 ? 'text-red-600' : 'text-slate-700'}`}>₹{balanceAmt}</span>
+</div>
+)}
           </div>
 
           <div className="flex gap-3 pt-2">

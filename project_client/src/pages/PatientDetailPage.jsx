@@ -3,16 +3,17 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { ArrowLeft, Upload, Download, Printer, FileText, Plus, RefreshCw } from 'lucide-react';
+import { calcInvoice, inr, statusBadge } from '../utils/invoice';
 
 function InvoiceModal({ patient, onClose, onCreated }) {
-  const [form, setForm] = useState({ amount: '', discount: '0', paymentMode: 'Cash', testName: patient.testName });
+  const [form, setForm] = useState({ amount: '', discount: '0', amountPaid: '', paymentMode: 'Cash', testName: patient.testName });
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      await api.post('/invoices', { patientId: patient._id, ...form, amount: Number(form.amount), discount: Number(form.discount) });
+      await api.post('/invoices', { patientId: patient._id, ...form, amount: Number(form.amount), discount: Number(form.discount), amountPaid: form.amountPaid === '' ? undefined : Number(form.amountPaid) });
       toast.success('Invoice created');
       onCreated();
     } catch (err) { toast.error(err.response?.data?.message || 'Failed'); }
@@ -40,6 +41,10 @@ function InvoiceModal({ patient, onClose, onCreated }) {
               <label className="label">Discount (₹)</label>
               <input type="number" className="input" min="0" value={form.discount} onChange={e => setForm(f => ({ ...f, discount: e.target.value }))} />
             </div>
+          </div>
+          <div>
+            <label className="label">Amount Paid (₹)</label>
+            <input type="number" className="input" min="0" value={form.amountPaid} placeholder="Leave blank for full payment" onChange={e => setForm(f => ({ ...f, amountPaid: e.target.value }))} />
           </div>
           <div>
             <label className="label">Payment Mode</label>
@@ -185,16 +190,19 @@ export default function PatientDetailPage() {
       {/* Invoice Section */}
       <div className="card p-5">
         <h2 className="font-semibold text-slate-700 mb-4 flex items-center gap-2"><Receipt size={16} /> Invoice</h2>
-        {patient.invoiceId ? (
+        {patient.invoiceId ? (() => { const ic = calcInvoice(patient.invoiceId); return (
           <div className="space-y-3">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-              {[['Invoice No', patient.invoiceId.invoiceNumber], ['Amount', `₹${patient.invoiceId.amount}`], ['Payment', patient.invoiceId.paymentMode], ['Date', new Date(patient.invoiceId.date).toLocaleDateString('en-IN')]].map(([l, v]) => (
+              {[['Invoice No', patient.invoiceId.invoiceNumber], ['Total Amount', inr(ic.grossAmount)], ['Discount', inr(ic.discount)], ['Net Amount', inr(ic.netAmount)], ['Amount Paid', inr(ic.amountPaid)], ['Balance Due', inr(ic.balanceAmount)], ['Payment', `${patient.invoiceId.paymentMode} · ${ic.paymentStatus}`], ['Date', new Date(patient.invoiceId.date).toLocaleDateString('en-IN')]].map(([l, v]) => (
                 <div key={l}><p className="text-xs text-slate-400 mb-0.5">{l}</p><p className="font-medium text-slate-700">{v}</p></div>
               ))}
             </div>
-            <button onClick={handleDownloadInvoice} className="btn-secondary flex items-center gap-2 text-sm"><Download size={13} /> Download Invoice</button>
+            <div className="flex items-center gap-2">
+              <span className={statusBadge(ic.paymentStatus)}>{ic.paymentStatus}</span>
+              <button onClick={handleDownloadInvoice} className="btn-secondary flex items-center gap-2 text-sm"><Download size={13} /> Download Invoice</button>
+            </div>
           </div>
-        ) : (
+        ); })() : (
           <div className="flex items-center gap-3">
             <span className="badge-gray">No invoice generated</span>
             <button onClick={() => setShowInvoice(true)} className="btn-primary flex items-center gap-1.5 text-sm"><Plus size={14} /> Create Invoice</button>
